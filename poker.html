@@ -1,0 +1,677 @@
+﻿<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poker League Championship Dashboard</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#f2a60d",
+            "background-light": "#f8f7f5",
+            "background-dark": "#1a1e12",
+          },
+          fontFamily: {
+            display: ["Manrope", "sans-serif"],
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+        },
+      },
+    };
+  </script>
+  <style type="text/tailwindcss">
+    body {
+      font-family: "Manrope", sans-serif;
+      background-color: #1a1e12;
+      background-image: radial-gradient(circle at center, rgba(34, 44, 20, 0.8) 0%, rgba(10, 12, 8, 0.95) 100%),
+        url(https://lh3.googleusercontent.com/aida-public/AB6AXuDp9tgRvlM4Qqjo2JLyxx3RpiojNvUYkVbaDfTkfaarF104qPRbdGhIP3TzqYGsYF606IIxKUbra1SXMGhD7ktoSQMEQMtr1TTkHqKPfB_57aEqASeIQX1cv8ERPDIE613CeJE0Aak4Ki6CMz384RpYyBeL0o65q0-b9Irflgxy6mY9jqRSUP5FljCD90jWDB8_ocWaPGozU6ojvB5OVp1x3TZuWm9WTfc_RYThdd3ldCjUaUOea0q5u-9ZJPxCmhh7Y0QNn2b6lJo);
+      background-attachment: fixed;
+    }
+    .poker-felt {
+      background: radial-gradient(circle at center, #1e3a1e 0%, #0d1a0d 100%);
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.4;
+    }
+    .glass-panel {
+      background: rgba(30, 30, 30, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .gold-glow:hover {
+      box-shadow: 0 0 15px rgba(242, 166, 13, 0.3);
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen dark">
+  <div class="poker-felt" data-alt="Dark green poker table felt texture"></div>
+  <main class="max-w-[1400px] mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <aside class="lg:col-span-3 space-y-6">
+      <div class="glass-panel p-6 rounded-xl">
+        <div class="mb-6 flex items-center gap-3">
+          <div class="size-10 text-primary">
+            <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path
+                clip-rule="evenodd"
+                d="M12.0799 24L4 19.2479L9.95537 8.75216L18.04 13.4961L18.0446 4H29.9554L29.96 13.4961L38.0446 8.75216L44 19.2479L35.92 24L44 28.7521L38.0446 39.2479L29.96 34.5039L29.9554 44H18.0446L18.04 34.5039L9.95537 39.2479L4 28.7521L12.0799 24Z"
+                fill-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-sm font-black uppercase italic tracking-tighter leading-none">Poker League</h1>
+            <p class="text-primary text-xs font-bold uppercase tracking-widest">Championship</p>
+          </div>
+        </div>
+        <div class="mb-6">
+          <h3 class="text-white text-lg font-bold leading-none mb-1">Etapas / Datas</h3>
+          <p class="text-white/50 text-xs font-semibold uppercase tracking-widest">Temporada 2026</p>
+        </div>
+        <div id="stage-list" class="flex flex-col gap-3"></div>
+      </div>
+    </aside>
+    <section class="lg:col-span-6 space-y-6">
+      <div class="flex items-center justify-between px-4">
+        <h2 class="text-2xl font-black uppercase tracking-tight">Classificação Geral</h2>
+        <div class="flex items-center gap-3">
+          <label class="flex items-center justify-center size-9 rounded-full bg-white/10 text-white/80 hover:bg-white/20 transition-colors cursor-pointer" title="Importar CSV da classificação">
+            <span class="material-symbols-outlined text-[18px]">upload_file</span>
+            <input class="js-classification-csv-input hidden" type="file" accept=".csv,text/csv" />
+          </label>
+          <span class="text-primary text-xs font-bold border border-primary/30 px-3 py-1 rounded-full bg-primary/10">ATUALIZADO AGORA</span>
+        </div>
+      </div>
+      <div class="glass-panel rounded-xl overflow-hidden border border-white/5 shadow-2xl">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-white/5 text-white/50 text-[11px] font-black uppercase tracking-[0.15em]">
+              <th class="px-6 py-4 w-20">Pos</th>
+              <th class="px-6 py-4">Jogador</th>
+              <th class="px-6 py-4 text-center">Pontos</th>
+              <th class="px-6 py-4 text-right">Etapas</th>
+            </tr>
+          </thead>
+          <tbody id="classification-body" class="divide-y divide-white/5">
+            <tr class="group hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4">
+                <span class="flex items-center justify-center size-8 rounded-full bg-primary text-black font-black text-sm shadow-[0_0_10px_rgba(242,166,13,0.4)]">1º</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">R</div>
+                  <span class="font-bold text-white group-hover:text-primary transition-colors">Ricardo 'The Shark'</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center font-bold">2,450</td>
+              <td class="px-6 py-4 text-right text-white/50 font-medium">5/5</td>
+            </tr>
+            <tr class="group hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4">
+                <span class="flex items-center justify-center size-8 rounded-full bg-slate-300 text-black font-black text-sm">2º</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-full bg-slate-300/20 flex items-center justify-center font-bold text-slate-300">A</div>
+                  <span class="font-bold text-white group-hover:text-slate-300 transition-colors">Ana 'Full House'</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center font-bold">2,100</td>
+              <td class="px-6 py-4 text-right text-white/50 font-medium">5/5</td>
+            </tr>
+            <tr class="group hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4">
+                <span class="flex items-center justify-center size-8 rounded-full bg-amber-700 text-white font-black text-sm">3º</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-full bg-amber-700/20 flex items-center justify-center font-bold text-amber-700">M</div>
+                  <span class="font-bold text-white group-hover:text-amber-700 transition-colors">Marco Silva</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center font-bold">1,850</td>
+              <td class="px-6 py-4 text-right text-white/50 font-medium">4/5</td>
+            </tr>
+            <tr class="group hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4 text-center font-black text-white/40">4º</td>
+              <td class="px-6 py-4 font-bold">Bia Oliveira</td>
+              <td class="px-6 py-4 text-center font-bold">1,600</td>
+              <td class="px-6 py-4 text-right text-white/50 font-medium">5/5</td>
+            </tr>
+            <tr class="group hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4 text-center font-black text-white/40">5º</td>
+              <td class="px-6 py-4 font-bold">Felipe Costa</td>
+              <td class="px-6 py-4 text-center font-bold">1,400</td>
+              <td class="px-6 py-4 text-right text-white/50 font-medium">5/5</td>
+            </tr>
+            <tr class="group hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4 text-center font-black text-white/40">6º</td>
+              <td class="px-6 py-4 font-bold">Lucas Santos</td>
+              <td class="px-6 py-4 text-center font-bold">1,250</td>
+              <td class="px-6 py-4 text-right text-white/50 font-medium">3/5</td>
+            </tr>
+            <tr class="group hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4 text-center font-black text-white/40">7º</td>
+              <td class="px-6 py-4 font-bold">Carla Nunes</td>
+              <td class="px-6 py-4 text-center font-bold">1,100</td>
+              <td class="px-6 py-4 text-right text-white/50 font-medium">5/5</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <aside class="lg:col-span-3">
+      <div class="glass-panel p-6 rounded-xl bg-gradient-to-b from-white/10 to-transparent">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="material-symbols-outlined text-primary">info</span>
+          <h3 class="text-white text-lg font-bold">Tabela de Pontuação</h3>
+        </div>
+        <p class="text-white/50 text-sm mb-6 leading-relaxed">
+          Os pontos são acumulados por etapa. Os 8 melhores pontuam conforme abaixo:
+        </p>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-white/5 pb-2">
+            <span class="text-primary font-black">1º Lugar</span>
+            <span class="font-bold">20 pts</span>
+          </div>
+          <div class="flex items-center justify-between border-b border-white/5 pb-2">
+            <span class="text-slate-300 font-black">2º Lugar</span>
+            <span class="font-bold">14 pts</span>
+          </div>
+          <div class="flex items-center justify-between border-b border-white/5 pb-2">
+            <span class="text-amber-700 font-black">3º Lugar</span>
+            <span class="font-bold">10 pts</span>
+          </div>
+          <div class="flex items-center justify-between text-white/70 text-sm">
+            <span>4º Lugar</span>
+            <span>7 pts</span>
+          </div>
+          <div class="flex items-center justify-between text-white/70 text-sm">
+            <span>5º Lugar</span>
+            <span>4 pts</span>
+          </div>
+          <div class="flex items-center justify-between text-white/70 text-sm">
+            <span>6º Lugar</span>
+            <span>0 pts</span>
+          </div>
+          <div class="flex items-center justify-between text-white/70 text-sm">
+            <span>7º Lugar</span>
+            <span>0 pts</span>
+          </div>
+          <div class="flex items-center justify-between text-white/70 text-sm">
+            <span>8º Lugar</span>
+            <span>0 pts</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+  <div id="stage-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 p-4">
+    <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <div>
+          <p class="text-white/50 text-xs font-bold uppercase tracking-widest">Pontuação da etapa</p>
+          <h3 id="stage-modal-title" class="text-xl font-black">22/01/2026</h3>
+        </div>
+        <button id="stage-modal-close" class="size-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" aria-label="Fechar modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div id="stage-modal-body" class="space-y-3"></div>
+    </div>
+  </div>
+  <footer class="mt-10 border-t border-white/5 py-10 glass-panel">
+    <div class="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="flex items-center gap-2 text-white/30 grayscale opacity-50">
+        <span class="material-symbols-outlined">casino</span>
+        <span class="text-sm font-bold tracking-widest uppercase">Official League Partner</span>
+      </div>
+      <p class="text-white/30 text-xs">© 2026 Poker League Championship. Todos os direitos reservados. Jogue com responsabilidade.</p>
+    </div>
+  </footer>
+  <script>
+    const sheetConfig = {
+      id: "1-c2yVSjTMJDlNEFLaaO6iOzadL9gfkN2WaSsFH9lcdA",
+      classificationGid: "0",
+      stagesGid: "567618088",
+    };
+
+    const buildSheetCsvUrl = (gid) =>
+      `https://docs.google.com/spreadsheets/d/${sheetConfig.id}/export?format=csv&gid=${gid}`;
+
+    const fallbackStageDates = [
+      "08/01/2026",
+      "22/01/2026",
+      "06/02/2026",
+      "21/02/2026",
+      "08/03/2026",
+      "23/03/2026",
+      "07/04/2026",
+    ];
+
+    const defaultPoints = [
+      { pos: "1º Lugar", name: "", pts: 20, className: "text-primary" },
+      { pos: "2º Lugar", name: "", pts: 14, className: "text-slate-300" },
+      { pos: "3º Lugar", name: "", pts: 10, className: "text-amber-700" },
+      { pos: "4º Lugar", name: "", pts: 7 },
+      { pos: "5º Lugar", name: "", pts: 4 },
+      { pos: "6º Lugar", name: "", pts: 0 },
+      { pos: "7º Lugar", name: "", pts: 0 },
+      { pos: "8º Lugar", name: "", pts: 0 },
+    ];
+
+    const stagePoints = {
+      "22/01/2026": defaultPoints,
+      "06/02/2026": defaultPoints,
+      "21/02/2026": defaultPoints,
+      "08/03/2026": defaultPoints,
+      "23/03/2026": defaultPoints,
+      "07/04/2026": defaultPoints,
+    };
+
+    const modal = document.getElementById("stage-modal");
+    const modalTitle = document.getElementById("stage-modal-title");
+    const modalBody = document.getElementById("stage-modal-body");
+    const modalClose = document.getElementById("stage-modal-close");
+
+    const buildRow = (row, isTop) => {
+      const rowClass = isTop
+        ? "grid grid-cols-[80px_1fr_70px] items-center gap-2 border-b border-white/5 pb-2"
+        : "grid grid-cols-[80px_1fr_70px] items-center gap-2 text-white/70 text-sm";
+      const labelClass = row.className ? `${row.className} font-black` : "";
+      const nameText = row.name ? row.name : "-";
+      return `
+        <div class="${rowClass}">
+          <span class="${labelClass}">${row.pos}</span>
+          <span class="font-semibold truncate">${nameText}</span>
+          <span class="font-bold text-right">${row.pts} pts</span>
+        </div>
+      `;
+    };
+
+    const openModal = (date) => {
+      const points = stagePoints[date] || defaultPoints;
+      modalTitle.textContent = date;
+      modalBody.innerHTML = points.map((row, index) => buildRow(row, index < 3)).join("");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    };
+
+    const closeModal = () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    };
+
+    const normalizeNumber = (value) => {
+      const numeric = value.replace(/[^\d]/g, "");
+      return numeric ? Number(numeric) : null;
+    };
+
+    const parseCsvPoints = (content) => {
+      const rows = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (rows.length === 0) return defaultPoints;
+
+      const splitRow = (line) => line.split(/\t|;|,/).map((part) => part.trim());
+      const header = splitRow(rows[0]).map((value) => value.toLowerCase());
+      const pointsIndex = header.findIndex((value) => value.includes("pontua"));
+      const classificationIndex = header.findIndex((value) => value.includes("classifica"));
+      const dateIndex = header.findIndex((value) => /\d{2}\/\d{2}/.test(value));
+      const nameIndex = classificationIndex >= 0 ? classificationIndex + 1 : 1;
+
+      const parsed = [];
+      rows.slice(1).forEach((line) => {
+        const parts = splitRow(line);
+        if (parts.length < 3) return;
+        const position = normalizeNumber(parts[0]);
+        const name = parts[nameIndex] || "";
+        const pointsValue =
+          pointsIndex >= 0 ? parts[pointsIndex] : parts[parts.length - 1];
+        const points = normalizeNumber(pointsValue);
+        if (position && points !== null) {
+          parsed.push({ position, name, points });
+        }
+      });
+
+      const pointsByPos = new Map(parsed.map((row) => [row.position, row]));
+      return defaultPoints.map((row, index) => {
+        const parsedRow = pointsByPos.get(index + 1);
+        if (!parsedRow) return row;
+        return {
+          ...row,
+          name: parsedRow.name || row.name,
+          pts: parsedRow.points,
+        };
+      });
+    };
+
+    const normalizeDate = (value) => {
+      const trimmed = value.trim();
+      const match = trimmed.match(/(\d{2})\/(\d{2})(?:\/(\d{2,4}))?/);
+      if (!match) return "";
+      const day = match[1];
+      const month = match[2];
+      const year = match[3] ? match[3].padStart(4, "20") : "2026";
+      return `${day}/${month}/${year}`;
+    };
+
+    const parseStageSheetCsv = (content) => {
+      const rows = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (rows.length === 0) return { stageMap: {}, dates: [] };
+
+      const splitRow = (line) => line.split(/\t|;|,/).map((part) => part.trim());
+      const stageMap = {};
+      const datesSet = new Set();
+      let currentDate = "";
+      let nameIndex = 1;
+      let pointsIndex = 2;
+      let classificationIndex = 0;
+
+      const headerParts = splitRow(rows[0]).map((value) => value.toLowerCase());
+      const hasDateColumn = headerParts.some((value) => value.includes("data"));
+      if (hasDateColumn) {
+        const classificationIdx = headerParts.findIndex((value) => value.includes("classifica"));
+        const dateIdx = headerParts.findIndex((value) => value.includes("data"));
+        const pointsIdx = headerParts.findIndex((value) => value.includes("pont"));
+        const nameIdx = headerParts.findIndex((value) => value.includes("jogador"));
+        rows.slice(1).forEach((line) => {
+          const parts = splitRow(line);
+          const dateValue = normalizeDate(parts[dateIdx] || "");
+          if (dateValue) {
+            datesSet.add(dateValue);
+            if (!stageMap[dateValue]) {
+              stageMap[dateValue] = defaultPoints.map((row) => ({ ...row }));
+            }
+          }
+          const position = normalizeNumber(parts[classificationIdx >= 0 ? classificationIdx : 0] || "");
+          const points = normalizeNumber(parts[pointsIdx >= 0 ? pointsIdx : parts.length - 1] || "");
+          const name = nameIdx >= 0 ? parts[nameIdx] || "" : "";
+          if (!dateValue || !position || points === null) return;
+          stageMap[dateValue][position - 1] = {
+            ...stageMap[dateValue][position - 1],
+            name,
+            pts: points,
+          };
+        });
+        return { stageMap, dates: Array.from(datesSet) };
+      }
+
+      rows.forEach((line) => {
+        const parts = splitRow(line);
+        if (parts.length === 0) return;
+        const lowerParts = parts.map((value) => value.toLowerCase());
+        const hasHeader =
+          lowerParts.some((value) => value.includes("classifica")) &&
+          lowerParts.some((value) => value.includes("pont"));
+
+        if (hasHeader) {
+          const headerDate = lowerParts.find((value) => /\d{2}\/\d{2}/.test(value));
+          currentDate = headerDate ? normalizeDate(headerDate) : currentDate;
+          if (currentDate) {
+            datesSet.add(currentDate);
+            if (!stageMap[currentDate]) {
+              stageMap[currentDate] = defaultPoints.map((row) => ({ ...row }));
+            }
+          }
+          classificationIndex = lowerParts.findIndex((value) => value.includes("classifica"));
+          nameIndex = classificationIndex >= 0 ? classificationIndex + 1 : 1;
+          pointsIndex = lowerParts.findIndex((value) => value.includes("pont"));
+          if (pointsIndex < 0) pointsIndex = parts.length - 1;
+          return;
+        }
+
+        const position = normalizeNumber(parts[0]);
+        if (!position || !currentDate) return;
+        const name = parts[nameIndex] || "";
+        const points = normalizeNumber(parts[pointsIndex] || "");
+        if (points === null) return;
+        if (!stageMap[currentDate]) {
+          stageMap[currentDate] = defaultPoints.map((row) => ({ ...row }));
+        }
+        stageMap[currentDate][position - 1] = {
+          ...stageMap[currentDate][position - 1],
+          name,
+          pts: points,
+        };
+      });
+
+      return { stageMap, dates: Array.from(datesSet) };
+    };
+
+    const fetchCsv = async (url) => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Falha ao carregar CSV: ${response.status}`);
+      }
+      return response.text();
+    };
+
+    const loadStagesFromSheet = async () => {
+      try {
+        const csv = await fetchCsv(buildSheetCsvUrl(sheetConfig.stagesGid));
+        const parsedStages = parseStageSheetCsv(csv);
+        Object.keys(parsedStages.stageMap).forEach((date) => {
+          stagePoints[date] = parsedStages.stageMap[date];
+        });
+        renderStageList(parsedStages.dates.length ? parsedStages.dates : fallbackStageDates);
+      } catch (error) {
+        console.error(error);
+        renderStageList(fallbackStageDates);
+      }
+    };
+
+    const loadClassificationFromSheet = async () => {
+      try {
+        const csv = await fetchCsv(buildSheetCsvUrl(sheetConfig.classificationGid));
+        const parsed = parseClassificationCsv(csv);
+        renderClassification(parsed);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const stageList = document.getElementById("stage-list");
+
+    const renderStageList = (dates) => {
+      if (!stageList) return;
+      const uniqueDates = Array.from(new Set(dates));
+      stageList.innerHTML = uniqueDates
+        .map(
+          (date) => `
+          <div class="flex items-center gap-3">
+            <button class="js-stage-button flex-1 flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition-all" data-stage-date="${date}">
+              <span class="material-symbols-outlined text-white/50 group-hover:text-white">calendar_today</span>
+              <span class="text-sm">${date}</span>
+            </button>
+            <label class="flex items-center justify-center size-10 rounded-lg bg-white/10 text-white/80 hover:bg-white/20 transition-colors cursor-pointer" title="Importar CSV">
+              <span class="material-symbols-outlined text-[20px]">upload_file</span>
+              <input class="js-csv-input hidden" type="file" accept=".csv,text/csv" data-stage-date="${date}" />
+            </label>
+          </div>
+        `
+        )
+        .join("");
+    };
+
+    const ensureStageDefaults = (dates) => {
+      dates.forEach((date) => {
+        if (!stagePoints[date]) {
+          stagePoints[date] = defaultPoints.map((row) => ({ ...row }));
+        }
+      });
+    };
+
+    stageList?.addEventListener("click", (event) => {
+      const button = event.target.closest(".js-stage-button");
+      if (!button) return;
+      openModal(button.dataset.stageDate);
+    });
+
+    stageList?.addEventListener("change", (event) => {
+      const input = event.target.closest(".js-csv-input");
+      if (!input) return;
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      const date = input.dataset.stageDate;
+      reader.onload = () => {
+        stagePoints[date] = parseCsvPoints(reader.result);
+        openModal(date);
+      };
+      reader.readAsText(file);
+    });
+
+    const classificationBody = document.getElementById("classification-body");
+
+    const getInitialClassification = () => {
+      if (!classificationBody) return [];
+      return Array.from(classificationBody.querySelectorAll("tr")).map((row) => {
+        const cells = row.querySelectorAll("td");
+        const pos = cells[0]?.innerText.trim() || "";
+        const name = cells[1]?.innerText.trim() || "";
+        const points = cells[2]?.innerText.trim() || "";
+        const stages = cells[3]?.innerText.trim() || "";
+        return { pos, name, points, stages };
+      });
+    };
+
+    const classificationDefaults = getInitialClassification();
+
+    const buildClassificationRow = (row, index) => {
+      const isTop = index < 3;
+      const posLabel = row.pos || `${index + 1}º`;
+      const nameText = row.name || "-";
+      const pointsText = row.points || "-";
+      const stagesText = row.stages || "-";
+      const initial = nameText.trim().charAt(0) || "-";
+
+      if (isTop) {
+        const colorClasses = [
+          "bg-primary text-black shadow-[0_0_10px_rgba(242,166,13,0.4)]",
+          "bg-slate-300 text-black",
+          "bg-amber-700 text-white",
+        ];
+        const badgeClasses = colorClasses[index] || "bg-primary text-black";
+        const avatarClasses = [
+          "bg-primary/20 text-primary",
+          "bg-slate-300/20 text-slate-300",
+          "bg-amber-700/20 text-amber-700",
+        ];
+        const avatarClass = avatarClasses[index] || "bg-white/10 text-white/80";
+        return `
+          <tr class="group hover:bg-white/5 transition-colors">
+            <td class="px-6 py-4">
+              <span class="flex items-center justify-center size-8 rounded-full ${badgeClasses} font-black text-sm">${posLabel}</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="size-8 rounded-full ${avatarClass} flex items-center justify-center font-bold">${initial}</div>
+                <span class="font-bold text-white">${nameText}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-center font-bold">${pointsText}</td>
+            <td class="px-6 py-4 text-right text-white/50 font-medium">${stagesText}</td>
+          </tr>
+        `;
+      }
+
+      return `
+        <tr class="group hover:bg-white/5 transition-colors">
+          <td class="px-6 py-4 text-center font-black text-white/40">${posLabel}</td>
+          <td class="px-6 py-4 font-bold">${nameText}</td>
+          <td class="px-6 py-4 text-center font-bold">${pointsText}</td>
+          <td class="px-6 py-4 text-right text-white/50 font-medium">${stagesText}</td>
+        </tr>
+      `;
+    };
+
+    const renderClassification = (rows) => {
+      if (!classificationBody) return;
+      classificationBody.innerHTML = rows.map(buildClassificationRow).join("");
+    };
+
+    const parseClassificationCsv = (content) => {
+      const rows = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (rows.length === 0) return classificationDefaults;
+
+      const splitRow = (line) => line.split(/\t|;|,/).map((part) => part.trim());
+      const headerParts = splitRow(rows[0]).map((value) => value.toLowerCase());
+      const hasHeader =
+        headerParts.some((value) => value.includes("pos")) ||
+        headerParts.some((value) => value.includes("jogador")) ||
+        headerParts.some((value) => value.includes("pont")) ||
+        (headerParts.length === 2 &&
+          (headerParts[0].includes("geral") || headerParts[0].includes("nome")) &&
+          headerParts[1].includes("pont"));
+
+      const startIndex = hasHeader ? 1 : 0;
+      const posIndex = hasHeader ? headerParts.findIndex((value) => value.includes("pos")) : 0;
+      const nameIndex = hasHeader ? headerParts.findIndex((value) => value.includes("jogador")) : 1;
+      const pointsIndex = hasHeader ? headerParts.findIndex((value) => value.includes("pont")) : 2;
+      const stagesIndex = hasHeader ? headerParts.findIndex((value) => value.includes("etap")) : 3;
+
+      const normalizedNameIndex = nameIndex >= 0 ? nameIndex : 0;
+      const normalizedPointsIndex =
+        pointsIndex >= 0
+          ? pointsIndex
+          : headerParts.length === 2
+            ? 1
+            : 2;
+
+      return rows.slice(startIndex).map((line, index) => {
+        const parts = splitRow(line);
+        return {
+          pos: parts[posIndex] || `${index + 1}º`,
+          name: parts[normalizedNameIndex] || "-",
+          points: parts[normalizedPointsIndex] || "-",
+          stages: stagesIndex >= 0 ? parts[stagesIndex] || "-" : "-",
+        };
+      });
+    };
+
+    const classificationInput = document.querySelector(".js-classification-csv-input");
+    if (classificationInput) {
+      classificationInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const parsed = parseClassificationCsv(reader.result);
+          renderClassification(parsed);
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    ensureStageDefaults(fallbackStageDates);
+    renderStageList(fallbackStageDates);
+    loadClassificationFromSheet();
+    loadStagesFromSheet();
+
+    modalClose.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeModal();
+    });
+  </script>
+</body>
+</html>
