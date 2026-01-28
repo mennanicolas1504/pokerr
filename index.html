@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
@@ -50,6 +50,75 @@
     }
     .gold-glow:hover {
       box-shadow: 0 0 15px rgba(242, 166, 13, 0.3);
+    }
+    .prize-banner {
+      background: linear-gradient(120deg, rgba(242, 166, 13, 0.35), rgba(242, 166, 13, 0.08) 55%, rgba(255, 214, 102, 0.2));
+      border: 2px solid rgba(242, 166, 13, 0.75);
+      box-shadow:
+        0 0 25px rgba(242, 166, 13, 0.45),
+        0 0 50px rgba(242, 166, 13, 0.25),
+        inset 0 0 18px rgba(242, 166, 13, 0.2);
+      position: relative;
+      overflow: hidden;
+      animation: prize-pulse 2.2s ease-in-out infinite;
+    }
+    .prize-banner::before {
+      content: "";
+      position: absolute;
+      top: -70%;
+      right: -25%;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(255, 240, 200, 0.55), transparent 70%);
+      opacity: 0.7;
+      filter: blur(6px);
+    }
+    .prize-banner::after {
+      content: "";
+      position: absolute;
+      inset: -60%;
+      background:
+        radial-gradient(circle, rgba(255, 230, 130, 0.35), transparent 55%),
+        linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+      opacity: 0.7;
+      transform: translateX(-40%);
+      animation: prize-sweep 3.6s linear infinite;
+    }
+    @keyframes prize-pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow:
+          0 0 25px rgba(242, 166, 13, 0.4),
+          0 0 50px rgba(242, 166, 13, 0.2),
+          inset 0 0 16px rgba(242, 166, 13, 0.16);
+      }
+      50% {
+        transform: scale(1.02);
+        box-shadow:
+          0 0 36px rgba(242, 166, 13, 0.75),
+          0 0 70px rgba(242, 166, 13, 0.35),
+          inset 0 0 22px rgba(242, 166, 13, 0.28);
+      }
+    }
+    @keyframes prize-sweep {
+      0% {
+        transform: translateX(-40%);
+      }
+      100% {
+        transform: translateX(40%);
+      }
+    }
+    .prize-badge {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(242, 166, 13, 0.6);
+      box-shadow: inset 0 0 10px rgba(242, 166, 13, 0.2);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      letter-spacing: 0.25em;
+      text-shadow: 0 0 12px rgba(242, 166, 13, 0.55);
+    }
+    .prize-value {
+      text-shadow: 0 0 18px rgba(242, 166, 13, 0.5), 0 0 30px rgba(255, 230, 130, 0.4);
     }
   </style>
 </head>
@@ -213,6 +282,13 @@
           </div>
         </div>
       </div>
+      <div class="prize-banner mt-6 flex items-center justify-between gap-3 rounded-2xl px-6 py-5 text-sm font-black uppercase text-primary">
+        <span class="prize-badge flex items-center gap-2 relative z-10 tracking-[0.25em]">
+          <span class="material-symbols-outlined text-[24px]">redeem</span>
+          Premição
+        </span>
+        <span id="prize-value" class="prize-value text-2xl font-black text-white relative z-10 tracking-normal whitespace-nowrap">R$ 0,00</span>
+      </div>
     </aside>
   </main>
   <div id="stage-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 p-4">
@@ -243,6 +319,7 @@
       id: "1-c2yVSjTMJDlNEFLaaO6iOzadL9gfkN2WaSsFH9lcdA",
       classificationGid: "0",
       stagesGid: "567618088",
+      prizeGid: "187845128",
     };
 
     const buildSheetCsvUrl = (gid) =>
@@ -460,6 +537,34 @@
       return response.text();
     };
 
+    const parsePrizeValue = (content) => {
+      const rows = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (rows.length < 2) return null;
+      const splitRow = (line) => line.split(/\t|;|,/).map((part) => part.trim());
+      const value = splitRow(rows[1])[0] || "";
+      if (!value) return null;
+      const numeric = Number(value.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", "."));
+      if (Number.isNaN(numeric)) return value;
+      return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(numeric);
+    };
+
+    const loadPrizeFromSheet = async () => {
+      const prizeValue = document.getElementById("prize-value");
+      if (!prizeValue) return;
+      try {
+        const csv = await fetchCsv(buildSheetCsvUrl(sheetConfig.prizeGid));
+        const parsed = parsePrizeValue(csv);
+        if (parsed) {
+          prizeValue.textContent = parsed;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     const loadStagesFromSheet = async () => {
       try {
         const csv = await fetchCsv(buildSheetCsvUrl(sheetConfig.stagesGid));
@@ -664,6 +769,7 @@
     renderStageList(fallbackStageDates);
     loadClassificationFromSheet();
     loadStagesFromSheet();
+    loadPrizeFromSheet();
 
     modalClose.addEventListener("click", closeModal);
     modal.addEventListener("click", (event) => {
